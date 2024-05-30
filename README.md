@@ -113,7 +113,7 @@ repositories {
 
 ```kotlin
 dependencies {
-    implementation("xyz.icetang.lib:icemmand-api:<version>")
+    compileOnly("xyz.icetang.lib:icemmand-api:<version>")
 }
 ```
 
