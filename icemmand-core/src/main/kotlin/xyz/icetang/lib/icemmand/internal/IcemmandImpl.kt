@@ -13,16 +13,12 @@ import com.mojang.brigadier.tree.LiteralCommandNode
 import com.mojang.brigadier.tree.RootCommandNode
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import io.papermc.paper.command.brigadier.Commands
-import io.papermc.paper.plugin.lifecycle.event.LifecycleEvent
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
-import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.plugin.Plugin
-import org.eclipse.sisu.bean.LifecycleManager
 import xyz.icetang.lib.icemmand.Icemmand
 import xyz.icetang.lib.icemmand.IcemmandDispatcher
 import xyz.icetang.lib.icemmand.internal.IcemmandContextImpl.Companion.wrapContext

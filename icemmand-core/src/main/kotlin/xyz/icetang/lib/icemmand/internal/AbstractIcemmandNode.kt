@@ -18,7 +18,7 @@ abstract class AbstractIcemmandNode : IcemmandNode, IcemmandArgumentSupport by I
                 require(!icemmand.immutable) { "Cannot redefine ${property.name} after registration" }
                 require(!initialized) { "Cannot redefine ${property.name} after initialization" }
 
-                return true;
+                return true
             }
 
             override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {

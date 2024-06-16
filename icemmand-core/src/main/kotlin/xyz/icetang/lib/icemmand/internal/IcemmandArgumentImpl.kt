@@ -209,6 +209,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun players(): IcemmandArgument<Collection<Player>> {
         return ArgumentTypes.players() provide { context, name ->
+
             ArgumentTypes.players().parse(StringReader(name)).resolve(context.source)
         }
 

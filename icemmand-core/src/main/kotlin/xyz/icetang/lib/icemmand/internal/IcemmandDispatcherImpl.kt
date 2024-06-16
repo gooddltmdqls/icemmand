@@ -11,7 +11,7 @@ class IcemmandDispatcherImpl : IcemmandDispatcher {
 
     internal fun initialize(plugin: Plugin, name: String) {
         this.root = RootNodeImpl().apply {
-            initialize(this@IcemmandDispatcherImpl, name, plugin.name, "A ${plugin.name} provided kommand")
+            initialize(this@IcemmandDispatcherImpl, name, plugin.name, "A ${plugin.name} provided icemmand")
         }
     }
 

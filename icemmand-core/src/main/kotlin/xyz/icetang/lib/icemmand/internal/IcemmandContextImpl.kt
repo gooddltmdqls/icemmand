@@ -5,7 +5,6 @@ import io.papermc.paper.command.brigadier.CommandSourceStack
 import xyz.icetang.lib.icemmand.IcemmandContext
 import xyz.icetang.lib.icemmand.IcemmandSource
 import xyz.icetang.lib.icemmand.internal.IcemmandSourceImpl.Companion.wrapSource
-import xyz.icetang.lib.icemmand.node.IcemmandNode
 import xyz.icetang.lib.icemmand.ref.getValue
 import xyz.icetang.lib.icemmand.ref.weak
 import java.util.*

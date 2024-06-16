@@ -2,7 +2,6 @@ package xyz.icetang.lib.icemmand.internal
 
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.command.CommandSender
