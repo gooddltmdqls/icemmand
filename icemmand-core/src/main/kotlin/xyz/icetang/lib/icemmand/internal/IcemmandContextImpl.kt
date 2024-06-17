@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package xyz.icetang.lib.icemmand.internal
 
 import com.mojang.brigadier.context.CommandContext

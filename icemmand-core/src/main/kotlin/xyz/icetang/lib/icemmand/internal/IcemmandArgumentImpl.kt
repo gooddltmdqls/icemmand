@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package xyz.icetang.lib.icemmand.internal
 
 import com.destroystokyo.paper.profile.PlayerProfile
@@ -14,9 +16,14 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import io.papermc.paper.command.brigadier.MessageComponentSerializer
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
+import io.papermc.paper.command.brigadier.argument.predicate.ItemStackPredicate
+import io.papermc.paper.command.brigadier.argument.range.DoubleRangeProvider
+import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolver
+import io.papermc.paper.command.brigadier.argument.resolvers.PlayerProfileListResolver
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.EntitySelectorArgumentResolver
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import io.papermc.paper.entity.LookAnchor
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.*
 import org.bukkit.advancement.Advancement
@@ -146,12 +153,14 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun color(): IcemmandArgument<TextColor> {
-        return dynamicByMap(NamedTextColor.NAMES.keyToValue().mapKeys { it.key.lowercase(Locale.ROOT) })
+        return ArgumentTypes.namedColor() provide { context, name ->
+            context.getArgument(name, TextColor::class.java)
+        }
     }
 
     override fun component(): IcemmandArgument<Component> {
-        return ArgumentTypes.component() provide { _, name ->
-            ArgumentTypes.component().parse(StringReader(name))
+        return ArgumentTypes.component() provide { context, name ->
+            context.getArgument(name, Component::class.java)
         }
     }
 
@@ -163,14 +172,14 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun dimension(): IcemmandArgument<World> {
-        return ArgumentTypes.world() provide { _, name ->
-            ArgumentTypes.world().parse(StringReader(name))
+        return ArgumentTypes.world() provide { context, name ->
+            context.getArgument(name, World::class.java)
         }
     }
 
     override fun entityAnchor(): IcemmandArgument<EntityAnchor> {
-        return ArgumentTypes.entityAnchor() provide { _, name ->
-            when (ArgumentTypes.entityAnchor().parse(StringReader(name))) {
+        return ArgumentTypes.entityAnchor() provide { context, name ->
+            when (context.getArgument(name, LookAnchor::class.java)) {
                 LookAnchor.EYES -> EntityAnchor.EYES
                 LookAnchor.FEET -> EntityAnchor.FEET
             }
@@ -179,7 +188,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun entity(): IcemmandArgument<Entity> {
         return ArgumentTypes.entity() provide { context, name ->
-            ArgumentTypes.entity().parse(StringReader(name)).resolve(context.source).first()
+            context.getArgument(name, EntitySelectorArgumentResolver::class.java).resolve(context.source).first()
         }
 
 //        return EntityArgument.entity() provide { context, name ->
@@ -189,7 +198,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun entities(): IcemmandArgument<Collection<Entity>> {
         return ArgumentTypes.entities() provide { context, name ->
-            ArgumentTypes.entities().parse(StringReader(name)).resolve(context.source)
+            context.getArgument(name, EntitySelectorArgumentResolver::class.java).resolve(context.source)
         }
 
 //        return EntityArgument.entities() provide { context, name ->
@@ -199,7 +208,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun player(): IcemmandArgument<Player> {
         return ArgumentTypes.player() provide { context, name ->
-            ArgumentTypes.player().parse(StringReader(name)).resolve(context.source).first()
+            context.getArgument(name, PlayerSelectorArgumentResolver::class.java).resolve(context.source).first()
         }
 
 //        return EntityArgument.player() provide { context, name ->
@@ -209,8 +218,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun players(): IcemmandArgument<Collection<Player>> {
         return ArgumentTypes.players() provide { context, name ->
-
-            ArgumentTypes.players().parse(StringReader(name)).resolve(context.source)
+            context.getArgument(name, PlayerSelectorArgumentResolver::class.java).resolve(context.source)
         }
 
 //        return EntityArgument.players() provide { context, name ->
@@ -225,7 +233,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun profile(): IcemmandArgument<Collection<PlayerProfile>> {
         return ArgumentTypes.playerProfiles() provide { context, name ->
-            ArgumentTypes.playerProfiles().parse(StringReader(name)).resolve(context.source)
+            context.getArgument(name, PlayerProfileListResolver::class.java).resolve(context.source)
         }
 
 //        return GameProfileArgument.gameProfile() provide { context, name ->
@@ -255,18 +263,23 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun objective(): IcemmandArgument<Objective> {
-        val objectives = Bukkit.getScoreboardManager().mainScoreboard.objectives.associateBy { it.name }
+        return dynamic { context, input ->
+            val objectives = Bukkit.getScoreboardManager().mainScoreboard.objectives.associateBy { it.name }
 
-        return StringArgumentType.word() provide { context, name ->
-            val objectiveName = StringArgumentType.getString(context, name)
-            objectives[objectiveName] ?: error("Objective $objectiveName not found")
+            objectives.filter { it.key.lowercase() == input.lowercase() }.values.firstOrNull()
+        }.apply {
+            suggests {
+                val objectives = Bukkit.getScoreboardManager().mainScoreboard.objectives.map { it.name }
+
+                suggest(objectives)
+            }
         }
     }
 
     // kommand에서는 반환값이 Criteria가 아닌 String이었지만, 임의로 Criteria로 변경
     override fun objectiveCriteria(): IcemmandArgument<Criteria> {
-        return ArgumentTypes.objectiveCriteria() provide { _, name ->
-            ArgumentTypes.objectiveCriteria().parse(StringReader(name))
+        return ArgumentTypes.objectiveCriteria() provide { context, name ->
+            context.getArgument(name, Criteria::class.java)
         }
     }
 
@@ -295,7 +308,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 //    //float
     override fun doubleRange(): IcemmandArgument<ClosedFloatingPointRange<Double>> {
         return ArgumentTypes.doubleRange() provide { context, name ->
-            val range = ArgumentTypes.doubleRange().parse(StringReader(name)).range()
+            val range = context.getArgument(name, DoubleRangeProvider::class.java).range()
             val min = if (range.hasLowerBound()) range.lowerEndpoint() else -Double.MAX_VALUE
             val max = if (range.hasUpperBound()) range.upperEndpoint() else Double.MAX_VALUE
 
@@ -331,8 +344,8 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun displaySlot(): IcemmandArgument<DisplaySlot> {
-        return ArgumentTypes.scoreboardDisplaySlot() provide { _, name ->
-            ArgumentTypes.scoreboardDisplaySlot().parse(StringReader(name))
+        return ArgumentTypes.scoreboardDisplaySlot() provide { context, name ->
+            context.getArgument(name, DisplaySlot::class.java)
         }
     }
 
@@ -403,14 +416,14 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun time(): IcemmandArgument<Int> {
-        return ArgumentTypes.time() provide { _, name ->
-            ArgumentTypes.time().parse(StringReader(name))
+        return ArgumentTypes.time() provide { context, name ->
+            context.getArgument(name, Int::class.java)
         }
     }
 
     override fun uuid(): IcemmandArgument<UUID> {
-        return ArgumentTypes.uuid() provide { _, name ->
-            ArgumentTypes.uuid().parse(StringReader(name))
+        return ArgumentTypes.uuid() provide { context, name ->
+            context.getArgument(name, UUID::class.java)
         }
     }
 
@@ -439,8 +452,8 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     // 이름은 BlockState인데 리턴값은 BlockData인 이상한 argument. 임시로 BlockState로 변경
     override fun blockState(): IcemmandArgument<BlockState> {
-        return ArgumentTypes.blockState() provide { _, name ->
-            ArgumentTypes.blockState().parse(StringReader(name))
+        return ArgumentTypes.blockState() provide { context, name ->
+            context.getArgument(name, BlockState::class.java)
         }
 
 //        return BlockStateArgument.block(commandBuildContext) provide { context, name ->
@@ -452,7 +465,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 
     override fun blockPosition(type: PositionLoadType): IcemmandArgument<BlockPosition3D> {
         return ArgumentTypes.blockPosition() provide { context, name ->
-            val blockPosition = ArgumentTypes.blockPosition().parse(StringReader(name)).resolve(context.source)
+            val blockPosition = context.getArgument(name, BlockPositionResolver::class.java).resolve(context.source)
 
             BlockPosition3D(blockPosition.blockX(), blockPosition.blockY(), blockPosition.blockZ())
         }
@@ -529,8 +542,8 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun item(): IcemmandArgument<ItemStack> {
-        return ArgumentTypes.itemStack() provide { _, name ->
-            ArgumentTypes.itemStack().parse(StringReader(name))
+        return ArgumentTypes.itemStack() provide { context, name ->
+            context.getArgument(name, ItemStack::class.java)
         }
 
 //        return ItemArgument.item(commandBuildContext) provide { context, name ->
@@ -539,8 +552,8 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     }
 
     override fun itemPredicate(): IcemmandArgument<(ItemStack) -> Boolean> {
-        return ArgumentTypes.itemPredicate() provide { _, name ->
-            ArgumentTypes.itemPredicate().parse(StringReader(name))::test
+        return ArgumentTypes.itemPredicate() provide { context, name ->
+            context.getArgument(name, ItemStackPredicate::class.java)::test
         }
 
 //        return ItemPredicateArgument.itemPredicate(commandBuildContext) provide { context, name ->
