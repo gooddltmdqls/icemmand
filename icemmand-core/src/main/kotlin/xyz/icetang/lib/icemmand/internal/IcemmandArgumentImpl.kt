@@ -6,7 +6,6 @@ import com.destroystokyo.paper.profile.PlayerProfile
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mojang.brigadier.LiteralMessage
-import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.arguments.*
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
@@ -18,6 +17,7 @@ import io.papermc.paper.command.brigadier.MessageComponentSerializer
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import io.papermc.paper.command.brigadier.argument.predicate.ItemStackPredicate
 import io.papermc.paper.command.brigadier.argument.range.DoubleRangeProvider
+import io.papermc.paper.command.brigadier.argument.range.IntegerRangeProvider
 import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolver
 import io.papermc.paper.command.brigadier.argument.resolvers.PlayerProfileListResolver
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.EntitySelectorArgumentResolver
@@ -290,7 +290,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
     // range 관련 부분은 누군가가 파싱 구현 바람
     override fun intRange(): IcemmandArgument<IntRange> {
         return ArgumentTypes.integerRange() provide { context, name ->
-            val range = ArgumentTypes.integerRange().parse(StringReader(name)).range()
+            val range = context.getArgument(name, IntegerRangeProvider::class.java).range()
             val min = if (range.hasLowerBound()) range.lowerEndpoint() else Int.MIN_VALUE
             val max = if (range.hasUpperBound()) range.upperEndpoint() else Int.MAX_VALUE
 
