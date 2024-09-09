@@ -23,6 +23,8 @@ import io.papermc.paper.command.brigadier.argument.resolvers.PlayerProfileListRe
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.EntitySelectorArgumentResolver
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import io.papermc.paper.entity.LookAnchor
+import io.papermc.paper.registry.RegistryAccess
+import io.papermc.paper.registry.RegistryKey
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.*
@@ -242,7 +244,7 @@ class IcemmandArgumentSupportImpl : IcemmandArgumentSupport {
 //        }
     }
 
-    private val enchantmentMap = Registry.ENCHANTMENT.associateBy { it.key.asString() }
+    private val enchantmentMap = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).associateBy { it.key.asString() }
 
     override fun enchantment(): IcemmandArgument<Enchantment> {
         return dynamicByMap(enchantmentMap)
